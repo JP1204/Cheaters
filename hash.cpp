@@ -16,6 +16,8 @@ HashTable::HashTable(){		// constructor initializes all pointers (LL) to NULL
             matchCount[i][j] = 0;
 	}
     }
+
+    head = NULL;
 }
 
 
@@ -90,7 +92,7 @@ void HashTable::countSim(int entryIndex){
         for(ChunkNode *p2 = p1->next; p2 != NULL; p2 = p2->next){
             fileNum1 = p1->fileIndex;
 	    fileNum2 = p2->fileIndex;
-
+	    
             if(fileNum1 != fileNum2){
 	    	matchCount[fileNum1][fileNum2] += 1;	// increments at indices of file
 	    }
@@ -108,6 +110,19 @@ void HashTable::getEntry(int entryNum){
 	temp = temp->next;
     }
     cout << endl;
+}
+
+
+void HashTable::printCollisions(vector<string> files){
+    FileNode *temp = head;
+
+    while(temp != NULL){
+        cout << temp->collisionCount << ": ";
+	cout << files[temp->fileNum1] << " and ";
+	cout << files[temp->fileNum2] << endl;
+        
+	temp = temp->next;
+    }
 }
 
 

@@ -27,6 +27,11 @@ int main(int argc, char *argv[])
     for (unsigned int i = 0;i < files.size();i++) {
         cout << i << files[i] << endl;
     }
+    if(files.size() > MAX_ROWS){
+        cout << "2D array not large enough for amount of documents" << endl;
+        return -1;
+    }
+
 
     // initialize the hash table
     HashTable hashtable;
@@ -39,6 +44,12 @@ int main(int argc, char *argv[])
 
     int chunkSize = stoi(argv[2]);
 cout << "chunk size is " << chunkSize << endl;
+    // gets threshold value for plagiarism checking
+    if(argv[3] == NULL){
+        cout << "you forgot the threshold" << endl;
+	return -1;
+    }
+
 
     string words;
     vector<string> chunk;
@@ -78,12 +89,9 @@ cout << "chunk size is " << chunkSize << endl;
 	}
     }
 
-    for(int i = 100000; i < 100002; i++){
-        hashtable.getEntry(i);
-    }
 
+    // store to the 2D array the number of collisions bw files
     for(int i = 0; i < hashtable.getTableSize(); i++){
-	  //  cout << "  we are at " << i << endl;
         hashtable.countSim(i);
     }
 
@@ -93,7 +101,29 @@ cout << "chunk size is " << chunkSize << endl;
 	}
     }
 
-    cout << "here" << endl;
+
+    // Displays the results with collisions above the threshold
+    int plagThreshold = atoi(argv[3]);
+    
+    for(int i = 0; i < MAX_ROWS; i++){
+        for(int j = (i + 1); j < MAX_COL; j++){
+	    // create node for LL that tracks collision bw files
+            FileNode *temp = new FileNode;
+	    
+	    temp->fileNum1 = i;
+	    temp->fileNum2 = j;
+
+	    // get similarities bw file i and j
+	    int count1 = hashtable.getMatchCount(i, j);
+	    int count2 = hashtable.getMatchCount(j, i);
+	    temp->collisionCount = count1 + count2; 
+
+	    temp->next = head;	// inserts it at front of the list
+	    head = temp;
+	}
+    }
+
+    hashtable.printCollisions(files);
 
 
     return 0;

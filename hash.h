@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#define MAX_ROWS 25
-#define MAX_COL 25
+#define MAX_ROWS 27
+#define MAX_COL 27
 
 using namespace std;
 
@@ -12,6 +12,13 @@ struct ChunkNode{
     ChunkNode *next;
 };
 
+struct FileNode{
+    int fileNum1;	// contains the 2 indices of the files
+    int fileNum2;
+    int collisionCount;
+
+    FileNode *next;
+};
 
 class HashTable{
     public:
@@ -26,13 +33,17 @@ class HashTable{
 
 	int getMatchCount(int i, int j)
             { return matchCount[i][j]; }
-        
+       
+        void printCollisions(vector<string> files);		// traverses LL and prints collision bw every 2 files
+
         ~HashTable();	
 
     private:
 	static const int TABLE_SIZE = 100003;
 
         ChunkNode *table[TABLE_SIZE];
-	int matchCount[MAX_ROWS][MAX_COL];        	
 
+	int matchCount[MAX_ROWS][MAX_COL];
+
+        FileNode *head;		// linked list	
 };
