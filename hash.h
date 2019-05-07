@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#define MAX_ROWS 27
-#define MAX_COL 27
+#define MAX_ROWS 78
+#define MAX_COL 78
 
 using namespace std;
 
@@ -34,7 +34,11 @@ class HashTable{
 	int getMatchCount(int i, int j)
             { return matchCount[i][j]; }
        
-        void printCollisions(vector<string> files);		// traverses LL and prints collision bw every 2 files
+        void printCollisions(vector<string> files, int threshold);		// traverses LL and prints collision bw every 2 files
+	
+	void insertFileNode(int i, int j);
+
+	void sortCollisions();
 
         ~HashTable();	
 

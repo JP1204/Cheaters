@@ -113,15 +113,67 @@ void HashTable::getEntry(int entryNum){
 }
 
 
-void HashTable::printCollisions(vector<string> files){
+void HashTable::printCollisions(vector<string> files, int threshold){
     FileNode *temp = head;
 
     while(temp != NULL){
-        cout << temp->collisionCount << ": ";
-	cout << files[temp->fileNum1] << " and ";
-	cout << files[temp->fileNum2] << endl;
-        
+	if(temp->collisionCount > threshold){
+            cout << temp->collisionCount << ": ";
+	    cout << files[temp->fileNum1] << " and ";
+	    cout << files[temp->fileNum2];
+	    cout << " (files " << temp->fileNum1 << " and " << temp->fileNum2 << ")" << endl;
+	}
+	
 	temp = temp->next;
+    }
+}
+
+
+void HashTable::insertFileNode(int i, int j){
+    // creates node for LL that tracks collisions bw files
+    FileNode *temp = new FileNode;
+
+    temp->fileNum1 = i;
+    temp->fileNum2 = j;
+
+    // gets similarities bw file i and j
+    int count1 = this->getMatchCount(i, j);
+    int count2 = this->getMatchCount(j, i);
+    temp->collisionCount = count1 + count2;
+    
+    temp->next = head;
+    head = temp;
+}
+
+
+void HashTable::sortCollisions(){
+    // implement selection sort
+    if(head == NULL){
+        return;
+    }
+    
+    for(FileNode *p1 = head; p1 != NULL; p1 = p1->next){    
+        FileNode *maxCollisions;
+	maxCollisions = p1;
+        
+        for(FileNode *p2 = p1->next; p2 != NULL; p2 = p2->next){ 
+	    if(p2->collisionCount > maxCollisions->collisionCount){
+	        maxCollisions = p2;
+            }
+	}
+
+        // swaps the largest element with the first element
+	if(p1 != maxCollisions){
+	    FileNode temp = {.fileNum1 = p1->fileNum1, .fileNum2 = p1->fileNum2, .collisionCount = p1->collisionCount, .next = NULL};
+            
+	    p1->fileNum1 = maxCollisions->fileNum1;
+	    p1->fileNum2 = maxCollisions->fileNum2;
+	    p1->collisionCount = maxCollisions->collisionCount;
+
+	    maxCollisions->fileNum1 = temp.fileNum1;
+	    maxCollisions->fileNum2 = temp.fileNum2;
+	    maxCollisions->collisionCount = temp.collisionCount;
+	}
     }
 }
 
@@ -143,4 +195,11 @@ HashTable::~HashTable(){
             table[i] = NULL;
 	}
     }
+
+    for(FileNode *temp = head; temp != NULL; temp = temp->next){
+        FileNode *prev = temp;
+        delete prev;
+    }
+
+    head = NULL;    
 }    

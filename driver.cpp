@@ -54,10 +54,14 @@ cout << "chunk size is " << chunkSize << endl;
     string words;
     vector<string> chunk;
     
+    string directory(argv[1]);
+    if(directory[directory.length() - 1] != '/'){
+        directory = directory + '/';
+    }	
 
     // opens every doc in the directory
     for(int i = 0; i < files.size(); i++){
-        ifstream doc(argv[1] + files[i]);
+        ifstream doc(directory + files[i]);
 	chunk.clear();	// clears vector for each new doc
         
         if(doc.is_open()){
@@ -68,7 +72,7 @@ cout << "chunk size is " << chunkSize << endl;
 	        doc >> words;
 	        chunk.push_back(words);
 	    }
-            printChunk(chunk);
+//            printChunk(chunk);
 
 	    int entryNum = hashtable.hash(chunk);	// hashes string onto an entryNum
 	    hashtable.insert(i, entryNum);		// inserts fileNum into table entry
@@ -107,24 +111,15 @@ cout << "chunk size is " << chunkSize << endl;
     
     for(int i = 0; i < MAX_ROWS; i++){
         for(int j = (i + 1); j < MAX_COL; j++){
-	    // create node for LL that tracks collision bw files
-            FileNode *temp = new FileNode;
-	    
-	    temp->fileNum1 = i;
-	    temp->fileNum2 = j;
-
-	    // get similarities bw file i and j
-	    int count1 = hashtable.getMatchCount(i, j);
-	    int count2 = hashtable.getMatchCount(j, i);
-	    temp->collisionCount = count1 + count2; 
-
-	    temp->next = head;	// inserts it at front of the list
-	    head = temp;
+            hashtable.insertFileNode(i, j);
 	}
     }
 
-    hashtable.printCollisions(files);
+    // sorts the LL from most collisions to least
+    hashtable.sortCollisions();
 
+    // print the files that have more collisions than the threshold
+    hashtable.printCollisions(files, plagThreshold);
 
     return 0;
 }
