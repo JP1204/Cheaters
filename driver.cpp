@@ -1,4 +1,3 @@
-
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
@@ -6,26 +5,10 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "hash.h"
+#include "cheaters.h"
 
 using namespace std;
-
-
-/*function... might want it in some class?*/
-int getdir (string dir, vector<string> &files)
-{
-    DIR *dp;
-    struct dirent *dirp;
-    if((dp  = opendir(dir.c_str())) == NULL) {	// .c_str() switches it to c style string for fxn
-        cout << "Error(" << errno << ") opening " << dir << endl;
-        return errno;
-    }
-
-    while ((dirp = readdir(dp)) != NULL) {
-        files.push_back(string(dirp->d_name));
-    }
-    closedir(dp);
-    return 0;
-}
 
 
 int main(int argc, char *argv[])
@@ -45,77 +28,47 @@ int main(int argc, char *argv[])
         cout << i << files[i] << endl;
     }
 
+    // initialize the hash table
+    HashTable hashtable;
 
     // gets chunk size for checking
     if(argv[2] == NULL){
-        cout << "Invalid chunk size" << endl;
+        cout << "Missing chunk size" << endl;
 	return -1;
     }
 
     int chunkSize = stoi(argv[2]);
 cout << "chunk size is " << chunkSize << endl;
 
-
-    // open one file and prints each chunk
-    ifstream firstDoc(argv[1] + files[0]);	// creates stream with directory/filename/
     string words;
     vector<string> chunk;
     
-    if(firstDoc.is_open()){
 
-	// gets a string with chunkSize number of words and prints the first chunk
-        for(int i = 0; i < chunkSize; i++){
-	    firstDoc >> words;
-	    chunk.push_back(words); 
-	}
-        for(auto word = chunk.begin(); word != chunk.end(); word++){
-	    cout << *word << " ";
-	}
-	cout << endl;
-
-	// repeat for the rest of the chunks
-	while(firstDoc >> words){
-	    chunk.erase(chunk.begin());		// erases the first element
-	    chunk.push_back(words);		// and pushes the new word to create new chunk
-
-	    for(auto word = chunk.begin(); word != chunk.end(); word++){
-	        cout << *word << " ";
-	    }
-	    cout << endl;
-	}
-
-	firstDoc.close();
-    }
-    else{
-        cout << "file " << files[1] << " failed to open" << endl;
-    }
-
-
-    // repeats for every doc in the directory
-    for(int i = 1; i < files.size(); i++){
+    // opens every doc in the directory
+    for(int i = 0; i < files.size(); i++){
         ifstream doc(argv[1] + files[i]);
+	chunk.clear();	// clears vector for each new doc
         
         if(doc.is_open()){
-            chunk.clear();	// clears the vector to get new chunks in new document
-            cout << "*****************************" << endl << endl;
+           //  chunk.clear();	// clears the vector to get new chunks in new document
+            cout << "*****************************" << endl;
 
 	    for(int i = 0; i < chunkSize; i++){
 	        doc >> words;
 	        chunk.push_back(words);
 	    }
-            for(int i = 0; i < chunkSize; i++){
-                cout << chunk[i] << " ";
-            }
-            cout << endl;
+            printChunk(chunk);
 
-            while(doc >> words){
+	    int entryNum = hashtable.hash(chunk);	// hashes string onto an entryNum
+	    hashtable.insert(i, entryNum);		// inserts fileNum into table entry
+
+            while(doc >> words){		// continue for the rest of the doc
  	        chunk.erase(chunk.begin());
                 chunk.push_back(words);
-		
-		for(int i = 0; i < chunkSize; i++){
-		    cout << chunk[i] << " ";
-    	 	}
-		cout << endl;
+//	        printChunk(chunk);
+
+		entryNum = hashtable.hash(chunk);
+		hashtable.insert(i, entryNum);
 	    }
 
 	    doc.close();
@@ -125,6 +78,23 @@ cout << "chunk size is " << chunkSize << endl;
 	}
     }
 
-	 
+    for(int i = 100000; i < 100002; i++){
+        hashtable.getEntry(i);
+    }
+
+    for(int i = 0; i < hashtable.getTableSize(); i++){
+	  //  cout << "  we are at " << i << endl;
+        hashtable.countSim(i);
+    }
+
+    for(int i = 0; i < MAX_ROWS; i++){
+        for(int j = 0; j < MAX_COL; j++){
+            cout << i << ", " << j << " = " << hashtable.getMatchCount(i, j) << endl;
+	}
+    }
+
+    cout << "here" << endl;
+
+
     return 0;
 }
